@@ -1,0 +1,25 @@
+apply plugin: 'application'
+
+group 'org.spacebison'
+version '0.2'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.google.gms:google-services:3.0.0'
+    compile 'com.google.code.gson:gson:2.7'
+    compile group: 'com.google.guava', name: 'guava', version: '21.0-rc2'
+    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.7'
+}
+
+task fatJar(type: Jar) {
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+        attributes 'Main-Class': 'org.spacebison.Main'
+    }
+}
