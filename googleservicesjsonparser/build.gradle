@@ -7,6 +7,16 @@ version '0.1'
 
 mainClassName = 'org.spacebison.googleservicesjsonparser.Main'
 
+
+buildscript {
+    repositories {
+        flatDir dirs: '../libs'
+    }
+    dependencies {
+        classpath ':proguard:'
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -22,4 +32,16 @@ dependencies {
     compile 'com.google.code.gson:gson:2.7'
     compile group: 'com.google.guava', name: 'guava', version: '21.0-rc2'
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.7'
+    compile group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
+}
+
+task proguard(type: proguard.gradle.ProGuardTask) {
+    configuration 'proguard.pro'
+    configuration 'proguard-gson.pro'
+    configuration 'proguard-groovy.pro'
+    configuration 'proguard-gms.pro'
+    configuration 'proguard-guava.pro'
+
+    injars 'build/libs/googleservicesjsonparser-' + shadowJar.version + '.jar'
+    outjars 'build/libs/obfuscated/test.jar'
 }
