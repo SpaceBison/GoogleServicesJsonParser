@@ -3,7 +3,7 @@ apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group 'org.spacebison'
-version '0.1'
+version '0.2'
 
 mainClassName = 'org.spacebison.googleservicesjsonparser.Main'
 
