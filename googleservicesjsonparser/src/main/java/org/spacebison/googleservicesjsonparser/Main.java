@@ -32,7 +32,7 @@ public class Main {
             task.action();
             final File values = new File(tmp.getAbsolutePath() + "/values", "values.xml");
             Files.move(values, new File(tmp.getParentFile(), "google-services-values.xml"));
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("Error generating resoureces: " + e.getMessage());
         } finally {
             deleteFolder(tmp);

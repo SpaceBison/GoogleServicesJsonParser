@@ -7,3 +7,5 @@
 
 -dontwarn com.google.errorprone.annotations.**
 -dontwarn com.google.common.io.Files
+-keepattributes Exceptions
+-keep public class * extends java.lang.Exception

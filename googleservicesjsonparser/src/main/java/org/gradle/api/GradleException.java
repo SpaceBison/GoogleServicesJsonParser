@@ -5,4 +5,22 @@ package org.gradle.api;
  */
 
 public class GradleException extends Exception {
+    public GradleException() {
+    }
+
+    public GradleException(String s) {
+        super(s);
+    }
+
+    public GradleException(String s, Throwable throwable) {
+        super(s, throwable);
+    }
+
+    public GradleException(Throwable throwable) {
+        super(throwable);
+    }
+
+    public GradleException(String s, Throwable throwable, boolean b, boolean b1) {
+        super(s, throwable, b, b1);
+    }
 }
