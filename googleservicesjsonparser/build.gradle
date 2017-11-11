@@ -25,11 +25,17 @@ shadowJar {
 
 dependencies {
     compile 'org.gradle:gradle-core:4.1'
+    compile 'org.gradle:gradle-model-core:4.1'
+    compile 'org.gradle:gradle-base-services:4.1'
+    compile 'org.gradle:gradle-base-services-groovy:4.1'
+    compile 'org.gradle:gradle-process-services:4.1'
+    compile 'org.gradle:gradle-logging:4.1'
     compile 'com.google.gms:google-services:3.1.2'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.google.guava:guava:21.0-rc2'
     compile 'org.codehaus.groovy:groovy-all:2.4.7'
     compile 'com.google.code.findbugs:jsr305:3.0.1'
+    compile 'org.slf4j:slf4j-api:1.7.25'
 }
 
 task proguard(type: proguard.gradle.ProGuardTask) {
