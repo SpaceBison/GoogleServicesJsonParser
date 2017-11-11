@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.gradle:gradle-core:4.1">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.gradle/gradle-core/4.1/677e1ae7547e2e458274d5d61f5afad70fe9ba8d/gradle-core-4.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.gradle/gradle-core/4.1/12e3e9f64239d2b4c1cbf3ec219d9ce993a64bfc/gradle-core-4.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

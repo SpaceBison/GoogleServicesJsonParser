@@ -4,7 +4,6 @@ import com.google.common.io.Files;
 import com.google.gms.googleservices.GoogleServicesTask;
 
 import java.io.File;
-import java.io.IOException;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class Main {
@@ -22,8 +21,9 @@ public class Main {
             System.err.println("File not found: " + jsonFile.getPath());
         }
 
+        final File tmp = makeTmpDir(null);
+
         final GoogleServicesTask task = new GoogleServicesTask();
-        final File tmp = makeTmpDir(jsonFile.getAbsoluteFile().getParentFile());
         task.intermediateDir = tmp;
         task.packageName = packageName;
         task.quickstartFile = jsonFile;
@@ -31,15 +31,19 @@ public class Main {
         try {
             task.action();
             final File values = new File(tmp.getAbsolutePath() + "/values", "values.xml");
-            Files.move(values, new File(tmp.getParentFile(), "google-services-values.xml"));
+            Files.move(values, new File("google-services-values.xml"));
         } catch (Exception e) {
-            System.err.println("Error generating resoureces: " + e.getMessage());
-        } finally {
-            deleteFolder(tmp);
+            System.err.println("Error generating resources: " + e.getMessage());
         }
+
+        deleteFolder(tmp);
     }
 
     private static File makeTmpDir(File parentFile) {
+        if (parentFile == null) {
+            parentFile = new File(".");
+        }
+
         StringBuilder sb = new StringBuilder("tmp");
         File tmp;
 

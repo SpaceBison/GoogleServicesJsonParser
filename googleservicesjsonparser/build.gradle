@@ -17,10 +17,6 @@ buildscript {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 shadowJar {
     baseName = 'googleservicesjsonparser'
     classifier = null
@@ -28,11 +24,12 @@ shadowJar {
 }
 
 dependencies {
-    compile 'com.google.gms:google-services:3.0.0'
+    compile 'org.gradle:gradle-core:4.1'
+    compile 'com.google.gms:google-services:3.1.2'
     compile 'com.google.code.gson:gson:2.7'
-    compile group: 'com.google.guava', name: 'guava', version: '21.0-rc2'
-    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.7'
-    compile group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
+    compile 'com.google.guava:guava:21.0-rc2'
+    compile 'org.codehaus.groovy:groovy-all:2.4.7'
+    compile 'com.google.code.findbugs:jsr305:3.0.1'
 }
 
 task proguard(type: proguard.gradle.ProGuardTask) {
