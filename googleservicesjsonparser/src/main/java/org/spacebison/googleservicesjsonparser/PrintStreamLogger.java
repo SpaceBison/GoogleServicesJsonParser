@@ -8,13 +8,13 @@ import org.slf4j.helpers.MarkerIgnoringBase;
 import java.io.PrintStream;
 
 public class PrintStreamLogger extends MarkerIgnoringBase implements Logger {
-    private PrintStream mDebugStream = System.out;
-    private PrintStream mLifecycleStream = System.out;
-    private PrintStream mQuietStream = System.out;
-    private PrintStream mInfoStream = System.out;
-    private PrintStream mWarnStream = System.err;
-    private PrintStream mErrorStream = System.err;
-    private PrintStream mTraceStream = System.out;
+    private final PrintStream mDebugStream = System.out;
+    private final PrintStream mLifecycleStream = System.out;
+    private final PrintStream mQuietStream = System.out;
+    private final PrintStream mInfoStream = System.out;
+    private final PrintStream mWarnStream = System.err;
+    private final PrintStream mErrorStream = System.err;
+    private final PrintStream mTraceStream = System.out;
 
     private static void log(PrintStream stream, String message) {
         stream.println(message);
