@@ -1,1 +1,1 @@
-include ':googleservicesjsonparser'
+include 'googleservicesjsonparser', 'googleservicesjsonparser-service'

@@ -7,58 +7,42 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.Charset;
 
 public class GoogleServicesJsonParser {
-    public static void parseGoogleServicesJson(String packageName, File googleServicesJsonFile, File outputFile, File tmpDir) {
+
+    public static final Charset UTF8 = Charset.forName("UTF-8");
+
+    public static File parseGoogleServicesJson(String packageName, File googleServicesJsonFile, File tmpDir) throws IOException {
         final GoogleServicesTask task = getGoogleServicesTask(packageName, googleServicesJsonFile, tmpDir);
+        System.out.println(googleServicesJsonFile);
+        task.action();
+        return new File(new File(tmpDir, "values"), "values.xml");
+    }
+
+    public static String parseGoogleServicesJson(String packageName, String googleServicesJson, File tmpDir) throws IOException {
+        File googleServicesJsonFile = new File(tmpDir, "google-services.json");
+
+        File valuesXmlFile;
         try {
-            task.action();
-            final File values = new File(tmpDir.getAbsolutePath() + "/values", "values.xml");
-            Files.move(values, outputFile);
-        } catch (Exception e) {
-            System.err.println("Error generating resources");
-            e.printStackTrace();
-        }
-    }
-
-    public static File makeTmpDir(File parentFile) {
-        if (parentFile == null) {
-            parentFile = new File(".");
+            Files.write(googleServicesJson, googleServicesJsonFile, UTF8);
+            valuesXmlFile = parseGoogleServicesJson(packageName, googleServicesJsonFile, new File(tmpDir, "output"));
+        } finally {
+            googleServicesJsonFile.delete();
         }
 
-        StringBuilder sb = new StringBuilder("tmp");
-        File tmp;
-
-        do {
-            sb.append('_');
-            tmp = new File(parentFile, sb.toString());
-        } while (tmp.exists());
-
-        tmp.mkdir();
-
-        return tmp;
-    }
-
-    public static void deleteDir(final File folder) {
-        if (!folder.exists()) {
-            return;
+        String valuesXml;
+        try {
+            valuesXml = Files.toString(valuesXmlFile, UTF8);
+        } finally {
+            valuesXmlFile.delete();
         }
 
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (final File file : files) {
-                if (file.isDirectory()) {
-                    deleteDir(file);
-                } else {
-                    file.delete();
-                }
-            }
-        }
-
-        folder.delete();
+        return valuesXml;
     }
 
     private static GoogleServicesTask getGoogleServicesTask(String packageName, File googleServicesJsonFile, File tmpDir) {
@@ -69,20 +53,10 @@ public class GoogleServicesJsonParser {
             Class<?> taskInfoClass = Class.forName("org.gradle.api.internal.AbstractTask$TaskInfo");
             Constructor<?> constructor = taskInfoClass.getDeclaredConstructor(ProjectInternal.class, String.class, Class.class);
             constructor.setAccessible(true);
-            Object othreadInfoInstance = constructor.newInstance(new LoggerProject(new PrintStreamLogger()), "name", LimitedGoogleServicesTask.class);
+            Object othreadInfoInstance = constructor.newInstance(new NullProjectInternal(), "name", LimitedGoogleServicesTask.class);
             o.set(othreadInfoInstance);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (NoSuchMethodException | InstantiationException | NoSuchFieldException | InvocationTargetException | ClassNotFoundException | IllegalAccessException e) {
+            throw new RuntimeException("Could not get GoogleServicesTask", e);
         }
 
         final GoogleServicesTask task = new LimitedGoogleServicesTask();

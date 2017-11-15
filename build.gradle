@@ -1,16 +1,13 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
-    }
-}
-
 allprojects {
-    repositories {
-        maven { url 'https://repo.gradle.org/gradle/libs-releases-local/' }
-        jcenter()
+    buildscript {
+        repositories {
+            jcenter()
+            flatDir dirs: new File(rootDir, '/libs')
+        }
+        dependencies {
+            classpath ':proguard:'
+            classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+        }
     }
 }
 

@@ -7,14 +7,9 @@ version '0.1'
 
 mainClassName = 'org.spacebison.googleservicesjsonparser.Main'
 
-
-buildscript {
-    repositories {
-        flatDir dirs: '../libs'
-    }
-    dependencies {
-        classpath ':proguard:'
-    }
+repositories {
+    jcenter()
+    maven { url 'https://repo.gradle.org/gradle/libs-releases-local/' }
 }
 
 shadowJar {
@@ -37,7 +32,7 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.7'
     compile 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'org.slf4j:slf4j-api:1.7.25'
-    compile 'org.mockito:mockito-core:2.7.22'
+    compile group: 'com.sparkjava', name: 'spark-core', version: '2.7.0'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'org.hamcrest', name: 'java-hamcrest', version: '2.0.0.0'
