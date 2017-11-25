@@ -12,37 +12,71 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
-public class GoogleServicesJsonParser {
+public final class GoogleServicesJsonParser {
+    public static final Charset UTF_8 = StandardCharsets.UTF_8;
 
-    public static final Charset UTF8 = Charset.forName("UTF-8");
+    private GoogleServicesJsonParser() {
+    }
 
-    public static File parseGoogleServicesJson(String packageName, File googleServicesJsonFile, File tmpDir) throws IOException {
+    public static File createGoogleServicesStringResXmlFile(String packageName, File googleServicesJsonFile, File tmpDir) throws IOException {
         final GoogleServicesTask task = getGoogleServicesTask(packageName, googleServicesJsonFile, tmpDir);
         System.out.println(googleServicesJsonFile);
         task.action();
         return new File(new File(tmpDir, "values"), "values.xml");
     }
 
-    public static String parseGoogleServicesJson(String packageName, String googleServicesJson, File tmpDir) throws IOException {
-        File googleServicesJsonFile = new File(tmpDir, "google-services.json");
+    public static String getGoogleServicesStringResXml(String packageName, File googleServicesJsonFile, File tmpDir) throws IOException {
+        File valuesXmlFile = createGoogleServicesStringResXmlFile(packageName, googleServicesJsonFile, tmpDir);
 
-        File valuesXmlFile;
         try {
-            Files.write(googleServicesJson, googleServicesJsonFile, UTF8);
-            valuesXmlFile = parseGoogleServicesJson(packageName, googleServicesJsonFile, new File(tmpDir, "output"));
-        } finally {
-            googleServicesJsonFile.delete();
-        }
-
-        String valuesXml;
-        try {
-            valuesXml = Files.toString(valuesXmlFile, UTF8);
+            return Files.toString(valuesXmlFile, UTF_8);
         } finally {
             valuesXmlFile.delete();
         }
+    }
 
-        return valuesXml;
+    public static String getGoogleServicesStringResXml(String packageName, String googleServicesJson, File tmpDir) throws IOException {
+        File valuesXmlFile = createGoogleServicesStringResXmlFile(packageName, googleServicesJson, tmpDir);
+
+        try {
+            return Files.toString(valuesXmlFile, UTF_8);
+        } finally {
+            valuesXmlFile.delete();
+        }
+    }
+
+    public static String getGoogleServicesStringResXml(String packageName, String googleServicesJson) throws IOException {
+        File tempDir = Files.createTempDir();
+
+        try {
+            return getGoogleServicesStringResXml(packageName, googleServicesJson, tempDir);
+        } finally {
+            tempDir.delete();
+        }
+    }
+
+    public static File createGoogleServicesStringResXmlFile(String packageName, String googleServicesJson) throws IOException {
+        File tempDir = Files.createTempDir();
+
+        try {
+            return createGoogleServicesStringResXmlFile(packageName, googleServicesJson, tempDir);
+        } finally {
+            tempDir.delete();
+        }
+    }
+
+
+    public static File createGoogleServicesStringResXmlFile(String packageName, String googleServicesJson, File tmpDir) throws IOException {
+        File googleServicesJsonFile = new File(tmpDir, "google-services.json");
+
+        try {
+            Files.write(googleServicesJson, googleServicesJsonFile, UTF_8);
+            return createGoogleServicesStringResXmlFile(packageName, googleServicesJsonFile, new File(tmpDir, "output"));
+        } finally {
+            googleServicesJsonFile.delete();
+        }
     }
 
     private static GoogleServicesTask getGoogleServicesTask(String packageName, File googleServicesJsonFile, File tmpDir) {

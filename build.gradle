@@ -9,6 +9,12 @@ allprojects {
             classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
         }
     }
+
+    repositories {
+        jcenter()
+        maven { url 'https://repo.gradle.org/gradle/libs-releases-local/' }
+        maven { url "https://maven.google.com" }
+    }
 }
 
 task clean(type: Delete) {

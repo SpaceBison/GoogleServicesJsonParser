@@ -5,12 +5,8 @@ apply plugin: 'com.github.johnrengelman.shadow'
 group 'org.spacebison'
 version '0.1'
 
-mainClassName = 'org.spacebison.googleservicesjsonparser.Main'
+mainClassName = 'org.spacebison.googleservicesjsonparser.service.Main'
 
-repositories {
-    jcenter()
-    maven { url 'https://repo.gradle.org/gradle/libs-releases-local/' }
-}
 
 shadowJar {
     baseName = 'googleservicesjsonparser'
@@ -29,10 +25,12 @@ dependencies {
     compile 'com.google.gms:google-services:3.1.2'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.google.guava:guava:21.0-rc2'
-    compile 'org.codehaus.groovy:groovy-all:2.4.7'
     compile 'com.google.code.findbugs:jsr305:3.0.1'
+    compile 'org.codehaus.groovy:groovy-all:2.4.7'
     compile 'org.slf4j:slf4j-api:1.7.25'
-    compile group: 'com.sparkjava', name: 'spark-core', version: '2.7.0'
+    compile 'org.slf4j:slf4j-simple:1.7.25'
+    compile 'com.squareup:javapoet:1.9.0'
+    compile 'com.sparkjava:spark-core:2.7.0'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'org.hamcrest', name: 'java-hamcrest', version: '2.0.0.0'

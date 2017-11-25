@@ -1,16 +1,10 @@
-package org.spacebison.googleservicesjsonparser;
-
-import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext;
-import org.slf4j.impl.StaticLoggerBinder;
+package org.spacebison.googleservicesjsonparser.service;
 
 import spark.Spark;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class Main {
     public static void main(String[] args) {
-        OutputEventListenerBackedLoggerContext loggerContext = (OutputEventListenerBackedLoggerContext) StaticLoggerBinder.getSingleton().getLoggerFactory();
-        loggerContext.setLevel(LogLevel.DEBUG);
         Spark.port(6666);
         new ApiController();
         System.out.println("Listening on port " + Spark.port());
@@ -28,7 +22,7 @@ public class Main {
         }
 
         File tmpDir = GoogleServicesJsonParser.makeTmpDir(null);
-        String parsed = GoogleServicesJsonParser.parseGoogleServicesJson(packageName, jsonFile, tmpDir);
+        String parsed = GoogleServicesJsonParser.createGoogleServicesStringResXmlFile(packageName, jsonFile, tmpDir);
         GoogleServicesJsonParser.deleteDir(tmpDir);
 
         System.out.println(parsed);*/
