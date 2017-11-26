@@ -3,14 +3,10 @@ package org.spacebison.googleservicesjsonparser;
 import com.google.common.io.Files;
 import com.google.gms.googleservices.GoogleServicesTask;
 
-import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.objenesis.ObjenesisStd;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -80,21 +76,8 @@ public final class GoogleServicesJsonParser {
     }
 
     private static GoogleServicesTask getGoogleServicesTask(String packageName, File googleServicesJsonFile, File tmpDir) {
-        try {
-            Field next_instance = AbstractTask.class.getDeclaredField("NEXT_INSTANCE");
-            next_instance.setAccessible(true);
-            ThreadLocal<Object> o = (ThreadLocal<Object>) next_instance.get(null);
-            Class<?> taskInfoClass = Class.forName("org.gradle.api.internal.AbstractTask$TaskInfo");
-            Constructor<?> constructor = taskInfoClass.getDeclaredConstructor(ProjectInternal.class, String.class, Class.class);
-            constructor.setAccessible(true);
-            Object othreadInfoInstance = constructor.newInstance(new NullProjectInternal(), "name", LimitedGoogleServicesTask.class);
-            o.set(othreadInfoInstance);
-        } catch (NoSuchMethodException | InstantiationException | NoSuchFieldException | InvocationTargetException | ClassNotFoundException | IllegalAccessException e) {
-            throw new RuntimeException("Could not get GoogleServicesTask", e);
-        }
-
-        final GoogleServicesTask task = new LimitedGoogleServicesTask();
-
+        final LimitedGoogleServicesTask task = new ObjenesisStd().getInstantiatorOf(LimitedGoogleServicesTask.class).newInstance();
+        task.setProject(new LoggerProject(new PrintStreamLogger()));
         task.intermediateDir = tmpDir;
         task.packageName = packageName;
         task.quickstartFile = googleServicesJsonFile;

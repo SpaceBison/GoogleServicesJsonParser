@@ -6,11 +6,15 @@ import org.gradle.api.Project;
 
 public class LimitedGoogleServicesTask extends GoogleServicesTask {
 
-    private Project mProject = new LoggerProject(new PrintStreamLogger());
+    private Project mProject;
 
     @Override
     public Project getProject() {
         return mProject;
     }
 
+
+    public void setProject(Project project) {
+        mProject = project;
+    }
 }
