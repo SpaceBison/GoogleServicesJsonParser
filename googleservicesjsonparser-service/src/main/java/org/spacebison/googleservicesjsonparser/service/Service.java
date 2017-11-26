@@ -12,26 +12,38 @@ import java.net.HttpURLConnection;
 import java.util.Map;
 
 import spark.Filter;
+import spark.Request;
+import spark.Response;
+import spark.Route;
 import spark.Spark;
 import spark.utils.StringUtils;
 
-public class ApiController {
-    public ApiController() {
-        //Spark.initExceptionHandler(Throwable::printStackTrace);
-        setupLogger();
-        setupIllegalArgumentExceptionHandler();
-        stringResources();
-        firebaseOptions();
+public final class Service {
+    private Service() {
+        init();
     }
 
-    private static String getFirebaseOptionsBuilderCode(String body) throws IOException, SAXException {
-        Map<String, String> firebaseConfiguration = AndroidStringResourceParser.parseStringResXml(body);
-        MethodSpec builderMethod = FirebaseOptionsGenerator.getFirebaseOptionsBuilderMethod(firebaseConfiguration);
-        return builderMethod.code.toString();
+    public static void init() {
+        initLogger();
+        initIllegalArgumentExceptionHandler();
+        Spark.post("/stringResources", new StringResourcesRoute());
+        Spark.post("/firebaseOptions", new FirebaseOptionsRoute());
     }
 
-    private void firebaseOptions() {
-        Spark.post("/firebaseOptions", "text/x-java-source", (request, response) -> {
+    private static void initIllegalArgumentExceptionHandler() {
+        Spark.exception(IllegalArgumentException.class, (exception, request, response) -> {
+            response.status(HttpURLConnection.HTTP_BAD_REQUEST);
+            response.body(exception.getMessage() + '\n');
+        });
+    }
+
+    private static void initLogger() {
+        Spark.before((Filter) new LoggerFilter());
+    }
+
+    private static class FirebaseOptionsRoute implements Route {
+        @Override
+        public Object handle(Request request, Response response) throws Exception {
             String body = request.body();
             if (StringUtils.isBlank(body)) {
                 throw new IllegalArgumentException("Empty body");
@@ -57,18 +69,18 @@ public class ApiController {
                 e.printStackTrace();
                 throw new IllegalArgumentException("Error parsing xml: " + e.getMessage());
             }
-        });
+        }
+
+        private static String getFirebaseOptionsBuilderCode(String body) throws IOException, SAXException {
+            Map<String, String> firebaseConfiguration = AndroidStringResourceParser.parseStringResXml(body);
+            MethodSpec builderMethod = FirebaseOptionsGenerator.getFirebaseOptionsBuilderMethod(firebaseConfiguration);
+            return builderMethod.code.toString();
+        }
     }
 
-    private void setupIllegalArgumentExceptionHandler() {
-        Spark.exception(IllegalArgumentException.class, (exception, request, response) -> {
-            response.status(HttpURLConnection.HTTP_BAD_REQUEST);
-            response.body(exception.getMessage() + '\n');
-        });
-    }
-
-    private void stringResources() {
-        Spark.post("/stringResources", "application/json", (request, response) -> {
+    private static class StringResourcesRoute implements Route {
+        @Override
+        public Object handle(Request request, Response response) throws Exception {
             String packageName = request.queryParams("packageName");
             if (packageName == null) {
                 throw new IllegalArgumentException("No packageName specified");
@@ -88,11 +100,12 @@ public class ApiController {
             } catch (Exception e) {
                 return null;
             }
-        });
+        }
     }
 
-    private void setupLogger() {
-        Spark.before((Filter) (request, response) -> {
+    private static class LoggerFilter implements Filter {
+        @Override
+        public void handle(Request request, Response response) throws Exception {
             System.out.println(request.requestMethod() + " " + request.uri());
 
             for (String header : request.headers()) {
@@ -100,6 +113,6 @@ public class ApiController {
             }
 
             System.out.println(request.body());
-        });
+        }
     }
 }

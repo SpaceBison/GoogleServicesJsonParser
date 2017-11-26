@@ -1,7 +1,7 @@
 group 'org.spacebison.googleservicesjsonparser'
 version '1.0-SNAPSHOT'
 
-apply plugin: 'java'
+apply plugin: 'war'
 
 sourceCompatibility = 1.8
 
