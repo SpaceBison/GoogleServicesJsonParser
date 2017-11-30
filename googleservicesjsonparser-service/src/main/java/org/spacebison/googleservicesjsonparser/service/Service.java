@@ -11,11 +11,16 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Map;
 
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.Part;
+
 import spark.Filter;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 import spark.Spark;
+import spark.utils.IOUtils;
 import spark.utils.StringUtils;
 
 public final class Service {
@@ -26,7 +31,7 @@ public final class Service {
     public static void init() {
         initLogger();
         initIllegalArgumentExceptionHandler();
-        Spark.post("/stringResources", new StringResourcesRoute());
+        Spark.post("/stringResources", "multipart/form-data", new StringResourcesRoute());
         Spark.post("/firebaseOptions", new FirebaseOptionsRoute());
     }
 
@@ -44,21 +49,9 @@ public final class Service {
     private static class FirebaseOptionsRoute implements Route {
         @Override
         public Object handle(Request request, Response response) throws Exception {
-            String body = request.body();
-            if (StringUtils.isBlank(body)) {
+            String stringResXml = request.body();
+            if (StringUtils.isBlank(stringResXml)) {
                 throw new IllegalArgumentException("Empty body");
-            }
-
-            String stringResXml = body;
-
-            String contentType = request.headers("Content-Type");
-            if ("application/json".equals(contentType)) {
-                String packageName = request.queryParams("packageName");
-                if (StringUtils.isBlank(packageName)) {
-                    throw new IllegalArgumentException("No packageName specified");
-                }
-
-                stringResXml = GoogleServicesJsonParser.getGoogleServicesStringResXml(packageName, body);
             }
 
             try {
@@ -81,18 +74,23 @@ public final class Service {
     private static class StringResourcesRoute implements Route {
         @Override
         public Object handle(Request request, Response response) throws Exception {
-            String packageName = request.queryParams("packageName");
-            if (packageName == null) {
-                throw new IllegalArgumentException("No packageName specified");
+            HttpServletRequest servletRequest = getMultipartHttpServletRequest(request);
+
+            Part googleServicesJsonPart = servletRequest.getPart("google-services.json");
+            if (googleServicesJsonPart == null) {
+                throw new IllegalArgumentException("Missing google-services.json part");
             }
 
-            String body = request.body();
-            if (StringUtils.isBlank(body)) {
-                throw new IllegalArgumentException("Empty body");
+            Part packageNamePart = servletRequest.getPart("packageName");
+            if (packageNamePart == null) {
+                throw new IllegalArgumentException("Missing packageName part");
             }
+
+            String packageName = IOUtils.toString(packageNamePart.getInputStream());
+            String googleServicesJson = IOUtils.toString(googleServicesJsonPart.getInputStream());
 
             try {
-                String stringResXml = GoogleServicesJsonParser.getGoogleServicesStringResXml(packageName, body);
+                String stringResXml = GoogleServicesJsonParser.getGoogleServicesStringResXml(packageName, googleServicesJson);
 
                 response.header("Content-Type", "application/xml; charset=utf-8");
 
@@ -101,6 +99,13 @@ public final class Service {
                 return null;
             }
         }
+    }
+
+    private static HttpServletRequest getMultipartHttpServletRequest(Request request) {
+        MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
+        HttpServletRequest servletRequest = request.raw();
+        servletRequest.setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
+        return servletRequest;
     }
 
     private static class LoggerFilter implements Filter {

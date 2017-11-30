@@ -36,6 +36,13 @@ public class MainTest {
     }
 
     @Test
+    public void testParseGoogleServicesJsonWithoutPackageName() throws IOException {
+        assumeThat(mGoogleServicesJsonFile, is(anExistingFile()));
+        File parsedXml = GoogleServicesJsonParser.createGoogleServicesStringResXmlFile(null, mGoogleServicesJsonFile, mTmpDir);
+        assertThat(parsedXml, is(anExistingFile()));
+    }
+
+    @Test
     public void testParseGoogleServicesStringResXml() throws IOException, SAXException {
         Map<String, String> firebaseConfig = getFirebaseConfigMap();
         System.out.println(firebaseConfig);
