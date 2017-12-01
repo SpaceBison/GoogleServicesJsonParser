@@ -1,8 +1,13 @@
 package org.spacebison.googleservicesjsonparser.service;
 
-import com.google.common.base.Throwables;
+import com.google.common.io.Files;
 import com.squareup.javapoet.MethodSpec;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUpload;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.servlet.ServletRequestContext;
 import org.spacebison.googleservicesjsonparser.AndroidStringResourceParser;
 import org.spacebison.googleservicesjsonparser.FirebaseOptionsGenerator;
 import org.spacebison.googleservicesjsonparser.GoogleServicesJsonParser;
@@ -13,11 +18,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.util.List;
 import java.util.Map;
 
-import javax.servlet.MultipartConfigElement;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
 
 import spark.Filter;
 import spark.Request;
@@ -28,13 +32,15 @@ import spark.utils.IOUtils;
 import spark.utils.StringUtils;
 
 public final class Service {
+    public static final ServletFileUpload FILE_UPLOAD = new ServletFileUpload(new DiskFileItemFactory(10000, Files.createTempDir()));
+
     private Service() {
         init();
     }
 
     public static void init() {
         initIllegalArgumentExceptionHandler();
-        Spark.exception(Exception.class, (exception, request, response) -> response.body(Throwables.getStackTraceAsString(exception)));
+        //Spark.exception(Exception.class, (exception, request, response) -> response.body(Throwables.getStackTraceAsString(exception)));
         Spark.post("/stringResources", "multipart/form-data", new StringResourcesRoute());
         Spark.post("/firebaseOptions", new FirebaseOptionsRoute());
     }
@@ -51,6 +57,12 @@ public final class Service {
     }
 
     private static class FirebaseOptionsRoute implements Route {
+        private static String getFirebaseOptionsBuilderCode(String body) throws IOException, SAXException {
+            Map<String, String> firebaseConfiguration = AndroidStringResourceParser.parseStringResXml(body);
+            MethodSpec builderMethod = FirebaseOptionsGenerator.getFirebaseOptionsBuilderMethod(firebaseConfiguration);
+            return builderMethod.code.toString();
+        }
+
         @Override
         public Object handle(Request request, Response response) throws Exception {
             String stringResXml = request.body();
@@ -67,39 +79,35 @@ public final class Service {
                 throw new IllegalArgumentException("Error parsing xml: " + e.getMessage());
             }
         }
-
-        private static String getFirebaseOptionsBuilderCode(String body) throws IOException, SAXException {
-            Map<String, String> firebaseConfiguration = AndroidStringResourceParser.parseStringResXml(body);
-            MethodSpec builderMethod = FirebaseOptionsGenerator.getFirebaseOptionsBuilderMethod(firebaseConfiguration);
-            return builderMethod.code.toString();
-        }
     }
 
     private static class StringResourcesRoute implements Route {
         private static final String PART_GOOGLE_SERVICES_JSON = "google-services.json";
         private static final String PART_PACKAGE_NAME = "packageName";
-        private final MultipartConfigElement mMultipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
 
         @Override
         public Object handle(Request request, Response response) throws Exception {
             HttpServletRequest rawRequest = request.raw();
-            setMultipartConfigAttribute(rawRequest);
 
-            Part packageNamePart = rawRequest.getPart(PART_PACKAGE_NAME);
-            if (packageNamePart == null) {
+            if (!FileUpload.isMultipartContent(new ServletRequestContext(rawRequest))) {
+                throw new IllegalArgumentException("Expected multipart request body");
+            }
+
+            Map<String, List<FileItem>> parameterMap = FILE_UPLOAD.parseParameterMap(rawRequest);
+
+            if (!parameterMap.containsKey(PART_PACKAGE_NAME)) {
                 throw new IllegalArgumentException("Missing packageName part");
             }
 
-            Part googleServicesJsonPart = rawRequest.getPart(PART_GOOGLE_SERVICES_JSON);
-            if (googleServicesJsonPart == null) {
+            if (!parameterMap.containsKey(PART_GOOGLE_SERVICES_JSON)) {
                 throw new IllegalArgumentException("Missing google-services.json part");
             }
 
-            String packageName = IOUtils.toString(packageNamePart.getInputStream());
+            String packageName = parameterMap.get(PART_PACKAGE_NAME).iterator().next().getString();
 
             File tmpJsonFile = File.createTempFile("google-services", ".json");
             try (OutputStream os = new FileOutputStream(tmpJsonFile)) {
-                IOUtils.copy(googleServicesJsonPart.getInputStream(), os);
+                IOUtils.copy(parameterMap.get(PART_GOOGLE_SERVICES_JSON).iterator().next().getInputStream(), os);
             }
 
             try {
@@ -110,19 +118,6 @@ public final class Service {
                 throw new RuntimeException(e);
             }
         }
-
-        private void setMultipartConfigAttribute(HttpServletRequest rawRequest) {
-            if (rawRequest.getAttribute("org.eclipse.jetty.multipartConfig") == null) {
-                rawRequest.setAttribute("org.eclipse.jetty.multipartConfig", mMultipartConfigElement);
-            }
-        }
-    }
-
-    private static HttpServletRequest getMultipartHttpServletRequest(Request request) {
-        HttpServletRequest servletRequest = request.raw();
-        MultipartConfigElement multipartConfig = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
-        servletRequest.setAttribute("org.eclipse.jetty.multipartConfig", multipartConfig);
-        return servletRequest;
     }
 
     private static class LoggerFilter implements Filter {
