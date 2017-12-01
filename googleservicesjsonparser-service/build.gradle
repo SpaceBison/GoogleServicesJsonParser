@@ -11,4 +11,5 @@ repositories {
 
 dependencies {
     compile project(':googleservicesjsonparser')
+    compile 'com.sparkjava:spark-core:2.7.0'
 }

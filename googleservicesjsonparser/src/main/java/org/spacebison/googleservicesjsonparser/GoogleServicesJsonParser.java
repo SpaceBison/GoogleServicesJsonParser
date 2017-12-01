@@ -30,6 +30,16 @@ public final class GoogleServicesJsonParser {
         return new File(new File(tmpDir, "values"), "values.xml");
     }
 
+    public static String getGoogleServicesStringResXml(String packageName, File googleServicesJsonFile) throws IOException {
+        File tempDir = Files.createTempDir();
+
+        try {
+            return getGoogleServicesStringResXml(packageName, googleServicesJsonFile, tempDir);
+        } finally {
+            tempDir.delete();
+        }
+    }
+
     public static String getGoogleServicesStringResXml(String packageName, File googleServicesJsonFile, File tmpDir) throws IOException {
         File valuesXmlFile = createGoogleServicesStringResXmlFile(packageName, googleServicesJsonFile, tmpDir);
 

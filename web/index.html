@@ -21,8 +21,12 @@
     </p>
 </section>
 <section>
-    <form action=
-    <input type="file" id="fileinput" accept="application/json|text/json"/>
+    <form method="post" enctype="multipart/form-data"
+          action="http://localhost:8080/stringResources">
+        <input type="text" name="packageName">
+        <input type="file" id="fileinput" accept="application/json|text/json" name="google-services.json"/>
+        <input type="submit">
+    </form>
 </section>
 </body>
 </html>
